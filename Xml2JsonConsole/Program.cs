@@ -24,7 +24,7 @@ namespace Xml2JsonConsole
                      {
                         if (File.Exists(o.Filename))
                         {
-                           CreateJson(o.Filename);
+                           CreateJson(o.Filename, o.Verbose, o.JsonSuffix);
                         }
                         else
                         {
@@ -34,20 +34,18 @@ namespace Xml2JsonConsole
 
                      if (!string.IsNullOrEmpty(o.Directory))
                      {
-                        CreateJsonDirectory(o.Directory);
+                        CreateJsonDirectory(o.Directory, o.Verbose, o.JsonSuffix);
                      }
                   });
       }
 
-
-      private static void CreateJsonDirectory(string directory)
+      private static void CreateJsonDirectory(string directory, bool verbose, string jsonSuffix)
       {
          if (Directory.Exists(directory))
          {
-            var files = Directory.GetFiles(directory, "*.xml");
-            foreach(var file in files)
+            foreach(var file in Directory.GetFiles(directory, "*.xml"))
             {
-               CreateJson(file);
+               CreateJson(file, verbose, jsonSuffix);
             }
          }
          else
@@ -55,7 +53,7 @@ namespace Xml2JsonConsole
             Logger.Warning("Inexisting directory: {Directory}", directory);
          }
       }
-      private static void CreateJson(string filename)
+      private static void CreateJson(string filename, bool verbose = true, string jsonSuffix = ".json")
       {
          var xml = File.ReadAllText(filename);
          XmlDocument doc = new XmlDocument();
@@ -64,8 +62,11 @@ namespace Xml2JsonConsole
          var builder = new StringBuilder();
          JsonSerializer.Create().Serialize(new CustomJsonWriter(new StringWriter(builder)), doc);
          var serialized = builder.ToString();
-         var outputFile = filename + ".json";
-         Logger.Information("{InputFile} -> {OutputFile}", filename, outputFile);
+         var outputFile = filename + jsonSuffix;
+         if (verbose)
+         {
+            Logger.Information("{InputFile} -> {OutputFile}", filename, outputFile);
+         }
 
          File.WriteAllText(outputFile, serialized, Encoding.UTF8);
       }
